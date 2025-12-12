@@ -99,6 +99,8 @@ class TikaLoader:
         self.extract_images = extract_images
 
     def load(self) -> list[Document]:
+        import os
+
         with open(self.file_path, "rb") as f:
             data = f.read()
 
@@ -109,6 +111,15 @@ class TikaLoader:
 
         if self.extract_images == True:
             headers["X-Tika-PDFextractInlineImages"] = "true"
+
+        for k, v in os.environ.items():
+            header_key: str = None
+            if k.startswith("TIKA_OCR_"):
+                header_key =  "X-Tika-OCR" + "".join(word.capitalize() for word in k.lstrip("TIKA_OCR_").split("_"))
+            elif k.startswith("TIKA_PDF_"):
+                header_key = "X-Tika-PDF" + "".join(word.capitalize() for word in k.lstrip("TIKA_PDF_").split("_"))
+            if header_key is not None:
+                headers[header_key] = v
 
         endpoint = self.url
         if not endpoint.endswith("/"):
